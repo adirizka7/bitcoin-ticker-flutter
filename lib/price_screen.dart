@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'coin_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
+import 'networking.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -9,7 +10,10 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
+  NetworkHelper networkHelper =
+      NetworkHelper(baseUrl: 'https://rest.coinapi.io/v1/exchangerate/');
   String selectedCurrency = 'USD';
+  String rate = '?';
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownMenuItems = [];
@@ -39,8 +43,14 @@ class _PriceScreenState extends State<PriceScreen> {
 
     return CupertinoPicker(
       itemExtent: 32.0,
-      onSelectedItemChanged: (selectedIndex) {
-        print(selectedIndex);
+      onSelectedItemChanged: (selectedIndex) async {
+        var resp = await networkHelper.getExchangeRate(
+            crypto: 'BTC', fiat: currenciesList[selectedIndex]);
+
+        setState(() {
+          selectedCurrency = currenciesList[selectedIndex];
+          rate = resp['rate'].toStringAsFixed(2);
+        });
       },
       children: pickerItems,
     ); // CupertinoPicker
@@ -75,7 +85,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ? USD',
+                  '1 BTC = $rate $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
