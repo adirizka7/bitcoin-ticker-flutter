@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'coin_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
-import 'networking.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -10,8 +9,7 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  NetworkHelper networkHelper =
-      NetworkHelper(baseUrl: 'https://rest.coinapi.io/v1/exchangerate/');
+  CoinData coinData = CoinData();
   String selectedCurrency = 'USD';
   String rate = '?';
 
@@ -44,12 +42,12 @@ class _PriceScreenState extends State<PriceScreen> {
     return CupertinoPicker(
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) async {
-        var resp = await networkHelper.getExchangeRate(
+        var rateInDecimals = await coinData.getCoinData(
             crypto: 'BTC', fiat: currenciesList[selectedIndex]);
 
         setState(() {
           selectedCurrency = currenciesList[selectedIndex];
-          rate = resp['rate'].toStringAsFixed(2);
+          rate = rateInDecimals.toStringAsFixed(2);
         });
       },
       children: pickerItems,
@@ -62,6 +60,20 @@ class _PriceScreenState extends State<PriceScreen> {
     }
 
     return androidDropdown();
+  }
+
+  void setDefaultRate() async {
+    var rateInDecimals = await coinData.getCoinData(crypto: 'BTC', fiat: 'USD');
+    setState(() {
+      rate = rateInDecimals.toStringAsFixed(2);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    setDefaultRate();
   }
 
   @override
