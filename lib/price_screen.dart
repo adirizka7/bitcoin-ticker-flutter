@@ -28,6 +28,7 @@ class _PriceScreenState extends State<PriceScreen> {
       onChanged: (value) {
         setState(() {
           selectedCurrency = value;
+          setRateData();
         });
       },
     ); // DropdownButton<String>
@@ -42,12 +43,9 @@ class _PriceScreenState extends State<PriceScreen> {
     return CupertinoPicker(
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) async {
-        var rateInDecimals = await coinData.getCoinData(
-            crypto: 'BTC', fiat: currenciesList[selectedIndex]);
-
         setState(() {
           selectedCurrency = currenciesList[selectedIndex];
-          rate = rateInDecimals.toStringAsFixed(2);
+          setRateData();
         });
       },
       children: pickerItems,
@@ -62,18 +60,23 @@ class _PriceScreenState extends State<PriceScreen> {
     return androidDropdown();
   }
 
-  void setDefaultRate() async {
-    var rateInDecimals = await coinData.getCoinData(crypto: 'BTC', fiat: 'USD');
-    setState(() {
-      rate = rateInDecimals.toStringAsFixed(2);
-    });
+  void setRateData() async {
+    try {
+      var rateInDecimals =
+          await coinData.getCoinData(crypto: 'BTC', fiat: selectedCurrency);
+      setState(() {
+        rate = rateInDecimals.toStringAsFixed(2);
+      });
+    } catch (e) {
+      print('Error setting rate data $e');
+    }
   }
 
   @override
   void initState() {
     super.initState();
 
-    setDefaultRate();
+    setRateData();
   }
 
   @override
