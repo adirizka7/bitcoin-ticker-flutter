@@ -11,7 +11,7 @@ class PriceScreen extends StatefulWidget {
 class _PriceScreenState extends State<PriceScreen> {
   CoinData coinData = CoinData();
   String selectedCurrency = 'USD';
-  String rate = '?';
+  Map rate = {'BTC': '?', 'ETH': '?', 'LTC': '?'};
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownMenuItems = [];
@@ -61,15 +61,38 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   void setRateData() async {
-    try {
-      var rateInDecimals =
-          await coinData.getCoinData(crypto: 'BTC', fiat: selectedCurrency);
-      setState(() {
-        rate = rateInDecimals.toStringAsFixed(2);
-      });
-    } catch (e) {
-      print('Error setting rate data $e');
+    for (String crypto in cryptoList) {
+      try {
+        var rateInDecimals =
+            await coinData.getCoinData(crypto: crypto, fiat: selectedCurrency);
+        setState(() {
+          rate[crypto] = rateInDecimals.toStringAsFixed(2);
+        });
+      } catch (e) {
+        print('Error setting rate data $e');
+      }
     }
+  }
+
+  Card buildCoinCard({String coin}) {
+    return Card(
+      color: Colors.lightBlueAccent,
+      elevation: 5.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ), // RoundedRectangleBorder
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+        child: Text(
+          '1 $coin = ${rate["$coin"]} $selectedCurrency',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 20.0,
+            color: Colors.white,
+          ), // TextStyle
+        ), // Text
+      ), // Padding
+    ); // Card
   }
 
   @override
@@ -91,24 +114,14 @@ class _PriceScreenState extends State<PriceScreen> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ), // RoundedRectangleBorder
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $rate $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ), // TextStyle
-                ), // Text
-              ), // Padding
-            ), // Card
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                buildCoinCard(coin: 'BTC'),
+                buildCoinCard(coin: 'ETH'),
+                buildCoinCard(coin: 'LTC'),
+              ], // <Widget>
+            ), // Row
           ), // Padding
           Container(
             height: 150.0,

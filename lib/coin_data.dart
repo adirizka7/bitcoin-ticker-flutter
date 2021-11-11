@@ -55,6 +55,8 @@ class CoinData {
       return body['rate'];
     } catch (e) {
       print(e);
+    } finally {
+      await Future.delayed(Duration(milliseconds: 500));
     }
   }
 }
